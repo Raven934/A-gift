@@ -269,13 +269,46 @@ footer {
   border-radius: 16px;
   border: 1px solid var(--border);
 }
+.spotify-card {
+  margin: 18px 0;
+  padding: 14px;
+  border: 1px solid #d8c2e9;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #f6effb, #fff8fc);
+}
+.spotify-card-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b3f91;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.spotify-card-label span {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+  background: #1db954;
+  font-size: 16px;
+}
 .spotify-player {
   display: block;
   width: 100%;
   min-height: 152px;
-  margin: 18px 0;
+  margin: 10px 0;
   border: 0;
   border-radius: 16px;
+}
+.spotify-link {
+  color: #7b3f91;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
 }
 .post-footer {
   margin-top: 18px;

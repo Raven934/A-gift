@@ -3,15 +3,20 @@ import "./App.css";
 
 const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
-const spotifyEmbedUrl = (url) => {
+const spotifyEmbed = (url) => {
   try {
     const parsed = new URL(url);
-    const match = parsed.pathname.match(/\/playlist\/([A-Za-z0-9]+)$/);
+    const match = parsed.pathname.match(
+      /\/(track|playlist)\/([A-Za-z0-9]+)$/,
+    );
     return match
-      ? `https://open.spotify.com/embed/playlist/${match[1]}?utm_source=generator`
-      : "";
+      ? {
+          type: match[1],
+          url: `https://open.spotify.com/embed/${match[1]}/${match[2]}?utm_source=generator`,
+        }
+      : null;
   } catch {
-    return "";
+    return null;
   }
 };
 
@@ -317,15 +322,35 @@ function App() {
                         alt="Note attachment"
                       />
                     )}
-                    {post.spotifyPlaylistUrl && spotifyEmbedUrl(post.spotifyPlaylistUrl) && (
-                      <iframe
-                        className="spotify-player"
-                        src={spotifyEmbedUrl(post.spotifyPlaylistUrl)}
-                        title={`${post.title} Spotify playlist`}
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"
-                      />
-                    )}
+                    {post.spotifyPlaylistUrl &&
+                      spotifyEmbed(post.spotifyPlaylistUrl) && (
+                        <div className="spotify-card">
+                          <div className="spotify-card-label">
+                            <span>♫</span>
+                            {spotifyEmbed(post.spotifyPlaylistUrl).type ===
+                            "track"
+                              ? "Song"
+                              : "Playlist"}
+                          </div>
+                          <iframe
+                            className="spotify-player"
+                            src={spotifyEmbed(post.spotifyPlaylistUrl).url}
+                            title={`${post.title} Spotify ${
+                              spotifyEmbed(post.spotifyPlaylistUrl).type
+                            }`}
+                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                            loading="lazy"
+                          />
+                          <a
+                            className="spotify-link"
+                            href={post.spotifyPlaylistUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open in Spotify ↗
+                          </a>
+                        </div>
+                      )}
                     <p className="post-content">{post.content}</p>
                     <div className="post-footer">
                       <button
