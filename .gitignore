@@ -1,0 +1,13 @@
+# Local secrets and databases
+backend/.env
+backend/database/database.sqlite
+
+# Dependencies and generated output
+backend/vendor/
+a-gift/node_modules/
+a-gift/dist/
+
+# Local tooling and logs
+.vscode/
+.idea/
+*.log
