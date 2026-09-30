@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+
+const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
 const api = async (path, options = {}) => {
   const response = await fetch(`/api${path}`, {
@@ -16,10 +18,10 @@ const api = async (path, options = {}) => {
 
 function App() {
   const [unlocked, setUnlocked] = useState(false);
-  const [pin, setPin] = useState("");
-  const [authorPin, setAuthorPin] = useState("");
+  const [pin, setPin] = useState(storedPin);
+  const [authorPin, setAuthorPin] = useState(storedPin);
   const [pinError, setPinError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(storedPin()));
   const [error, setError] = useState("");
   const [isAuthor, setIsAuthor] = useState(false);
   const [pingCount, setPingCount] = useState(0);
@@ -30,6 +32,27 @@ function App() {
   const [modal, setModal] = useState(null);
   const [composerType, setComposerType] = useState("post");
   const [floatingHeart, setFloatingHeart] = useState(false);
+
+  useEffect(() => {
+    const savedPin = storedPin();
+    if (!savedPin) return;
+
+    api("/sanctuary", {
+      headers: { "X-Sanctuary-Pin": savedPin },
+    })
+      .then((data) => {
+        setPosts(data.posts);
+        setEnvelopes(data.envelopes);
+        setPingCount(data.pingCount || 0);
+        setUnlocked(true);
+      })
+      .catch(() => {
+        window.sessionStorage.removeItem("sanctuaryPin");
+        setPin("");
+        setAuthorPin("");
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredPosts = useMemo(
     () =>
@@ -52,6 +75,7 @@ function App() {
       setPosts(data.posts);
       setEnvelopes(data.envelopes);
       setPingCount(data.pingCount || 0);
+      window.sessionStorage.setItem("sanctuaryPin", pin);
       setUnlocked(true);
     } catch {
       setPinError(true);
@@ -139,7 +163,7 @@ function App() {
       <div className="gate">
         <div className="gate-card">
           <div className="round-icon">♥</div>
-          <h2>Our Little Corner</h2>
+          <h2>Our Little Cozy Corner</h2>
           <p>Enter our special code to enter our private diary space.</p>
           <form onSubmit={unlock}>
             <input
@@ -148,20 +172,17 @@ function App() {
               maxLength="10"
               value={pin}
               onChange={(event) => setPin(event.target.value)}
-              placeholder="Enter PIN (e.g. 1024)"
+              placeholder="Enter our special code"
             />
             {pinError && (
               <small className="error">
-                Incorrect passcode. Try default “1024”!
+                Remember... When it all started...
               </small>
             )}
             <button className="primary wide" type="submit" disabled={loading}>
               {loading ? "Opening…" : "Unlock Sanctuary ♥"}
             </button>
           </form>
-          <small>
-            Hint: Default pin is <strong>1024</strong>
-          </small>
         </div>
       </div>
     );
@@ -180,7 +201,7 @@ function App() {
           <div className="brand">
             <div className="brand-mark">A</div>
             <div>
-              <h1>For My Dearest</h1>
+              <h1>For My Love</h1>
               <p>Private Journal &amp; Notes</p>
             </div>
           </div>
@@ -203,7 +224,7 @@ function App() {
           <h2>A cozy place for my thoughts, poems, and notes for you.</h2>
           <p className="quote">
             “No matter where the day takes us, this little corner will always
-            lead me back to you.”
+            lead me back to you... and hope it leads you back to me.”
           </p>
         </div>
         {isAuthor && (
