@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
+// Remember the little secret code while this browser tab is open.
 const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
+// Turn a normal Spotify link into the little player we can show here.
 const spotifyEmbed = (url) => {
   try {
     const parsed = new URL(url);
@@ -20,6 +22,7 @@ const spotifyEmbed = (url) => {
   }
 };
 
+// Talk to the Laravel backend and give us a useful error if it says no.
 const api = async (path, options = {}) => {
   const response = await fetch(`/api${path}`, {
     ...options,
@@ -40,6 +43,7 @@ const api = async (path, options = {}) => {
   return body;
 };
 
+// This is the main room of the website. It keeps all the diary bits together.
 function App() {
   const [unlocked, setUnlocked] = useState(false);
   const [pin, setPin] = useState(storedPin);
@@ -58,6 +62,7 @@ function App() {
   const [composerType, setComposerType] = useState("post");
   const [floatingHeart, setFloatingHeart] = useState(false);
 
+  // If the tab remembers the code, quietly open the room again after a refresh.
   useEffect(() => {
     const savedPin = storedPin();
     if (!savedPin) return;
@@ -90,6 +95,7 @@ function App() {
     [activeTag, posts],
   );
 
+  // Check the secret code, then bring in the diary and envelopes.
   const unlock = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -112,6 +118,7 @@ function App() {
     }
   };
 
+  // Add one tiny heart to the "thinking of you" counter.
   const sendPing = async () => {
     try {
       const data = await api("/sanctuary/ping", {
@@ -126,6 +133,7 @@ function App() {
     }
   };
 
+  // Save a new note, poem, memory, or Spotify song.
   const addPost = async (event) => {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -162,6 +170,7 @@ function App() {
     }
   };
 
+  // Put a new little letter into the envelope box.
   const addEnvelope = async (event) => {
     event.preventDefault();
     const formElement = event.currentTarget;
@@ -470,6 +479,7 @@ function App() {
   );
 }
 
+// A simple pop-up box that closes when we click outside it.
 function Modal({ children, onClose }) {
   return (
     <div
@@ -486,6 +496,7 @@ function Modal({ children, onClose }) {
   );
 }
 
+// The writing box where we make a note or seal an envelope.
 function Composer({ type, setType, onClose, onPost, onEnvelope }) {
   const [formTag, setFormTag] = useState("quick-thought");
 
