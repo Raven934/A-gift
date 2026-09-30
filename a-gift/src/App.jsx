@@ -22,6 +22,7 @@ function App() {
   const [authorPin, setAuthorPin] = useState(storedPin);
   const [pinError, setPinError] = useState(false);
   const [loading, setLoading] = useState(Boolean(storedPin()));
+  const [checkingAccess, setCheckingAccess] = useState(Boolean(storedPin()));
   const [error, setError] = useState("");
   const [isAuthor, setIsAuthor] = useState(false);
   const [pingCount, setPingCount] = useState(0);
@@ -51,7 +52,10 @@ function App() {
         setPin("");
         setAuthorPin("");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        setCheckingAccess(false);
+      });
   }, []);
 
   const filteredPosts = useMemo(
@@ -157,6 +161,16 @@ function App() {
       setError(requestError.message);
     }
   };
+
+  if (checkingAccess)
+    return (
+      <div className="gate">
+        <div className="gate-card">
+          <div className="round-icon">♥</div>
+          <h2>Opening Sanctuary…</h2>
+        </div>
+      </div>
+    );
 
   if (!unlocked)
     return (
