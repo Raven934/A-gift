@@ -269,6 +269,14 @@ footer {
   border-radius: 16px;
   border: 1px solid var(--border);
 }
+.spotify-player {
+  display: block;
+  width: 100%;
+  min-height: 152px;
+  margin: 18px 0;
+  border: 0;
+  border-radius: 16px;
+}
 .post-footer {
   margin-top: 18px;
   padding-top: 14px;

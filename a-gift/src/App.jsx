@@ -3,6 +3,18 @@ import "./App.css";
 
 const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
+const spotifyEmbedUrl = (url) => {
+  try {
+    const parsed = new URL(url);
+    const match = parsed.pathname.match(/\/playlist\/([A-Za-z0-9]+)$/);
+    return match
+      ? `https://open.spotify.com/embed/playlist/${match[1]}?utm_source=generator`
+      : "";
+  } catch {
+    return "";
+  }
+};
+
 const api = async (path, options = {}) => {
   const response = await fetch(`/api${path}`, {
     ...options,
@@ -126,6 +138,7 @@ function App() {
           date: form.get("date"),
           content: form.get("content"),
           imageUrl: form.get("media") || null,
+          spotifyPlaylistUrl: form.get("spotifyPlaylistUrl") || null,
         }),
       });
       setPosts((current) => [
@@ -133,6 +146,7 @@ function App() {
           ...data.post,
           id: String(data.post.id),
           imageUrl: data.post.image_url,
+          spotifyPlaylistUrl: data.post.spotify_playlist_url,
         },
         ...current,
       ]);
@@ -275,7 +289,7 @@ function App() {
           <section className="feed">
             <div className="filters">
               <span>⚲ Filter:</span>
-              {["all", "quick-thought", "poem", "memory", "audio"].map(
+              {["all", "quick-thought", "poem", "memory", "playlist"].map(
                 (tag) => (
                   <button
                     key={tag}
@@ -301,6 +315,15 @@ function App() {
                         className="post-image"
                         src={post.imageUrl}
                         alt="Note attachment"
+                      />
+                    )}
+                    {post.spotifyPlaylistUrl && spotifyEmbedUrl(post.spotifyPlaylistUrl) && (
+                      <iframe
+                        className="spotify-player"
+                        src={spotifyEmbedUrl(post.spotifyPlaylistUrl)}
+                        title={`${post.title} Spotify playlist`}
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
                       />
                     )}
                     <p className="post-content">{post.content}</p>
@@ -439,6 +462,8 @@ function Modal({ children, onClose }) {
 }
 
 function Composer({ type, setType, onClose, onPost, onEnvelope }) {
+  const [formTag, setFormTag] = useState("quick-thought");
+
   return (
     <Modal onClose={onClose}>
       <h3>Create New Entry</h3>
@@ -465,11 +490,15 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
           <div className="form-row">
             <label>
               Tag Category
-              <select name="tag">
+              <select
+                name="tag"
+                value={formTag}
+                onChange={(event) => setFormTag(event.target.value)}
+              >
                 <option value="quick-thought">#quick-thought</option>
                 <option value="poem">#poem</option>
                 <option value="memory">#memory</option>
-                <option value="audio">#audio</option>
+                <option value="playlist">#playlist</option>
               </select>
             </label>
             <label>
@@ -486,10 +515,22 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
               placeholder="Write your heartfelt note here..."
             />
           </label>
-          <label>
-            Optional Image URL or Audio Link
-            <input name="media" type="url" placeholder="https://..." />
-          </label>
+          {formTag === "playlist" ? (
+            <label>
+              Spotify Playlist URL
+              <input
+                name="spotifyPlaylistUrl"
+                type="url"
+                required
+                placeholder="https://open.spotify.com/playlist/..."
+              />
+            </label>
+          ) : (
+            <label>
+              Optional Image URL
+              <input name="media" type="url" placeholder="https://..." />
+            </label>
+          )}
           <button className="primary wide" type="submit">
             ✈ Publish Note
           </button>
