@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    // Put a few sweet starter notes in the empty database.
     public function run(): void
     {
         // User::factory(10)->create();

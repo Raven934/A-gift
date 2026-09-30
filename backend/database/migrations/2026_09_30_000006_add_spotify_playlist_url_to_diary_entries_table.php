@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    // Add a little place to keep a Spotify playlist or song link.
     public function up(): void
     {
         Schema::table('diary_entries', function (Blueprint $table): void {
@@ -14,7 +13,6 @@ return new class extends Migration
         });
     }
 
-    // Remove that place again if we ever roll this change back.
     public function down(): void
     {
         Schema::table('diary_entries', function (Blueprint $table): void {

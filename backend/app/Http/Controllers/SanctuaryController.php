@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 
 class SanctuaryController extends Controller
 {
-    // Check the passcode before letting anyone into the cozy room.
     public function unlock(Request $request): JsonResponse
     {
         $valid = hash_equals((string) config('sanctuary.pin'), (string) $request->input('pin'));
@@ -18,7 +17,6 @@ class SanctuaryController extends Controller
         return response()->json(['unlocked' => $valid], $valid ? 200 : 422);
     }
 
-    // Send the saved notes, envelopes, and heart count to the website.
     public function index(Request $request): JsonResponse
     {
         $this->ensureAccess($request);
@@ -44,7 +42,6 @@ class SanctuaryController extends Controller
         ]);
     }
 
-    // Add one to the little "thinking of you" heart counter.
     public function ping(Request $request): JsonResponse
     {
         $this->ensureAccess($request);
@@ -55,7 +52,6 @@ class SanctuaryController extends Controller
         return response()->json(['pingCount' => $stat->fresh()->value]);
     }
 
-    // Give a note one more bit of love.
     public function like(Request $request, DiaryEntry $entry): JsonResponse
     {
         $this->ensureAccess($request);
@@ -65,7 +61,6 @@ class SanctuaryController extends Controller
         return response()->json(['likes' => $entry->fresh()->likes]);
     }
 
-    // Save a new diary note, memory, poem, or Spotify song.
     public function storePost(Request $request): JsonResponse
     {
         $this->ensureAuthor($request);
@@ -87,7 +82,6 @@ class SanctuaryController extends Controller
         return response()->json(['post' => $entry], 201);
     }
 
-    // Save one of the letters for a special kind of day.
     public function storeEnvelope(Request $request): JsonResponse
     {
         $this->ensureAuthor($request);
@@ -100,13 +94,11 @@ class SanctuaryController extends Controller
         return response()->json(['envelope' => Envelope::create($data)], 201);
     }
 
-    // Author mode needs the same secret code before it can write.
     private function ensureAuthor(Request $request): void
     {
         $this->ensureAccess($request, 'Author access required.');
     }
 
-    // Keep the private room private by checking the code on every request.
     private function ensureAccess(Request $request, string $message = 'Sanctuary access required.'): void
     {
         abort_unless(hash_equals((string) config('sanctuary.pin'), (string) $request->header('X-Sanctuary-Pin')), 403, $message);
