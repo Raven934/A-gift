@@ -11,7 +11,11 @@ const api = async (path, options = {}) => {
   const body = await response.json().catch(() => ({}));
   if (!response.ok)
     throw new Error(
-      body.message || "The sanctuary server could not complete that request.",
+      body.message ||
+        Object.values(body.errors || {})
+          .flat()
+          .join(" ") ||
+        "The sanctuary server could not complete that request.",
     );
   return body;
 };
@@ -397,9 +401,11 @@ function App() {
             <h3>A Secret Note</h3>
             <small>You found the hidden star!</small>
             <p>
-              “If you ever forget how deeply loved you are, just click through
-              this little website. I built it so you can carry my words wherever
-              you go.”
+              “If you ever find yourself doubting the depth of my heart, step
+              back into this quiet sanctuary. I built this little haven just for
+              you a place where my love can gently whisper to yours, wrapping
+              you in warmth and keeping my devotion close to you, wherever your
+              journey leads.”
             </p>
             <button className="primary" onClick={() => setModal(null)}>
               Close Secret
@@ -496,10 +502,10 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
           <label>
             Category / Icon Mood
             <select name="category">
-              <option>Comfort</option>
-              <option>Love</option>
-              <option>Fun</option>
-              <option>Night</option>
+              <option value="Comfort">Comfort</option>
+              <option value="Love">Love</option>
+              <option value="Fun">Fun</option>
+              <option value="Night">Night</option>
             </select>
           </label>
           <label>
