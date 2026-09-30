@@ -111,7 +111,8 @@ function App() {
 
   const addPost = async (event) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       const data = await api("/sanctuary/posts", {
         method: "POST",
@@ -135,7 +136,7 @@ function App() {
         },
         ...current,
       ]);
-      event.currentTarget.reset();
+      formElement.reset();
       setModal(null);
     } catch (requestError) {
       setError(requestError.message);
@@ -144,7 +145,8 @@ function App() {
 
   const addEnvelope = async (event) => {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     try {
       const data = await api("/sanctuary/envelopes", {
         method: "POST",
@@ -162,7 +164,7 @@ function App() {
         { ...data.envelope, id: String(data.envelope.id) },
         ...current,
       ]);
-      event.currentTarget.reset();
+      formElement.reset();
       setModal(null);
     } catch (requestError) {
       setError(requestError.message);
