@@ -7,5 +7,7 @@ Route::post('/unlock', [SanctuaryController::class, 'unlock']);
 Route::get('/sanctuary', [SanctuaryController::class, 'index']);
 Route::post('/sanctuary/ping', [SanctuaryController::class, 'ping']);
 Route::post('/sanctuary/posts', [SanctuaryController::class, 'storePost']);
+Route::put('/sanctuary/posts/{entry}', [SanctuaryController::class, 'updatePost']);
+Route::delete('/sanctuary/posts/{entry}', [SanctuaryController::class, 'destroyPost']);
 Route::post('/sanctuary/posts/{entry}/like', [SanctuaryController::class, 'like']);
 Route::post('/sanctuary/envelopes', [SanctuaryController::class, 'storeEnvelope']);

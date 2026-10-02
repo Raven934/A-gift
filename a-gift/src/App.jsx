@@ -131,9 +131,14 @@ function App() {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const editingPost = modal?.type === "edit" ? modal.post : null;
     try {
-      const data = await api("/sanctuary/posts", {
-        method: "POST",
+      const data = await api(
+        editingPost
+          ? `/sanctuary/posts/${editingPost.id}`
+          : "/sanctuary/posts",
+        {
+        method: editingPost ? "PUT" : "POST",
         headers: {
           "X-Sanctuary-Pin": authorPin,
           "X-Author-Pin": authorPin,
@@ -146,18 +151,40 @@ function App() {
           imageUrl: form.get("imageUrl") || null,
           spotifyPlaylistUrl: form.get("spotifyPlaylistUrl") || null,
         }),
-      });
-      setPosts((current) => [
-        {
+        },
+      );
+      const savedPost = {
           ...data.post,
           id: String(data.post.id),
           imageUrl: data.post.image_url,
           spotifyPlaylistUrl: data.post.spotify_playlist_url,
-        },
-        ...current,
-      ]);
+      };
+      setPosts((current) =>
+        editingPost
+          ? current.map((post) =>
+              post.id === editingPost.id ? savedPost : post,
+            )
+          : [savedPost, ...current],
+      );
       formElement.reset();
       setModal(null);
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+
+  const deletePost = async (post) => {
+    if (!window.confirm(`Delete “${post.title}”? This cannot be undone.`)) return;
+
+    try {
+      await api(`/sanctuary/posts/${post.id}`, {
+        method: "DELETE",
+        headers: {
+          "X-Sanctuary-Pin": authorPin,
+          "X-Author-Pin": authorPin,
+        },
+      });
+      setPosts((current) => current.filter((item) => item.id !== post.id));
     } catch (requestError) {
       setError(requestError.message);
     }
@@ -385,7 +412,25 @@ function App() {
                       >
                         ♡ Read with love <b>{post.likes}</b>
                       </button>
-                      <small>Forever saved</small>
+                      <div className="post-actions">
+                        {isAuthor && (
+                          <>
+                            <button
+                              className="post-action"
+                              onClick={() => setModal({ type: "edit", post })}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              className="post-action delete"
+                              onClick={() => deletePost(post)}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                        <small>Forever saved</small>
+                      </div>
                     </div>
                   </article>
                 ))
@@ -442,6 +487,17 @@ function App() {
           onEnvelope={addEnvelope}
         />
       )}
+      {modal?.type === "edit" && (
+        <Composer
+          type="post"
+          setType={() => {}}
+          initialPost={modal.post}
+          onClose={() => setModal(null)}
+          onPost={addPost}
+          onEnvelope={addEnvelope}
+          editing
+        />
+      )}
       {modal?.type === "read" && (
         <Modal onClose={() => setModal(null)}>
           <div className="read-envelope">
@@ -492,33 +548,48 @@ function Modal({ children, onClose }) {
   );
 }
 
-function Composer({ type, setType, onClose, onPost, onEnvelope }) {
-  const [formTag, setFormTag] = useState("quick-thought");
+function Composer({
+  type,
+  setType,
+  initialPost,
+  onClose,
+  onPost,
+  onEnvelope,
+  editing = false,
+}) {
+  const [formTag, setFormTag] = useState(initialPost?.tag || "quick-thought");
 
   return (
     <Modal onClose={onClose}>
-      <h3>Create New Entry</h3>
-      <div className="composer-tabs">
-        <button
-          type="button"
-          className={type === "post" ? "active" : ""}
-          onClick={() => setType("post")}
-        >
-          Timeline Note
-        </button>
-        <button
-          type="button"
-          className={type === "envelope" ? "active" : ""}
-          onClick={() => setType("envelope")}
-        >
-          “Open When...” Envelope
-        </button>
-      </div>
+      <h3>{editing ? "Edit Entry" : "Create New Entry"}</h3>
+      {!editing && (
+        <div className="composer-tabs">
+          <button
+            type="button"
+            className={type === "post" ? "active" : ""}
+            onClick={() => setType("post")}
+          >
+            Timeline Note
+          </button>
+          <button
+            type="button"
+            className={type === "envelope" ? "active" : ""}
+            onClick={() => setType("envelope")}
+          >
+            “Open When...” Envelope
+          </button>
+        </div>
+      )}
       {type === "post" ? (
         <form className="entry-form" onSubmit={onPost}>
           <label>
             Title
-            <input name="title" required placeholder="A title for today..." />
+            <input
+              name="title"
+              required
+              defaultValue={initialPost?.title || ""}
+              placeholder="A title for today..."
+            />
           </label>
           <div className="form-row">
             <label>
@@ -536,7 +607,11 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
             </label>
             <label>
               Date
-              <input name="date" placeholder="Today's date" />
+              <input
+                name="date"
+                defaultValue={initialPost?.date || ""}
+                placeholder="Today's date"
+              />
             </label>
           </div>
           <label>
@@ -544,6 +619,7 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
             <textarea
               name="content"
               rows="5"
+              defaultValue={initialPost?.content || ""}
               placeholder="Write your heartfelt note here..."
             />
           </label>
@@ -554,17 +630,23 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
                 name="spotifyPlaylistUrl"
                 type="url"
                 required
+                defaultValue={initialPost?.spotifyPlaylistUrl || ""}
                 placeholder="https://open.spotify.com/playlist/..."
               />
             </label>
           ) : (
             <label>
               Optional Image URL
-              <input name="imageUrl" type="url" placeholder="https://..." />
+              <input
+                name="imageUrl"
+                type="url"
+                defaultValue={initialPost?.imageUrl || ""}
+                placeholder="https://..."
+              />
             </label>
           )}
           <button className="primary wide" type="submit">
-            ✈ Publish Note
+            {editing ? "Save Changes" : "✈ Publish Note"}
           </button>
         </form>
       ) : (

@@ -320,6 +320,19 @@ footer {
   background: none;
   color: var(--rose);
 }
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.post-action {
+  padding: 0;
+  color: var(--purple) !important;
+  font-size: 12px;
+}
+.post-action.delete {
+  color: #b74455 !important;
+}
 .post-footer b {
   margin-left: 4px;
   padding: 2px 7px;

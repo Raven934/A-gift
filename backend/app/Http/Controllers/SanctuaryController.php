@@ -64,23 +64,25 @@ class SanctuaryController extends Controller
     public function storePost(Request $request): JsonResponse
     {
         $this->ensureAuthor($request);
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'tag' => ['required', 'in:quick-thought,poem,memory,playlist'],
-            'date' => ['nullable', 'string', 'max:100'],
-            'content' => ['nullable', 'string', 'max:10000'],
-            'imageUrl' => ['nullable', 'url', 'max:2048'],
-            'spotifyPlaylistUrl' => ['required_if:tag,playlist', 'nullable', 'url', 'max:2048'],
-        ]);
-        $entry = DiaryEntry::create([
-            ...$data,
-            'content' => $data['content'] ?? '',
-            'image_url' => $data['imageUrl'] ?? null,
-            'spotify_playlist_url' => $data['spotifyPlaylistUrl'] ?? null,
-            'date' => $data['date'] ?? 'Today',
-        ]);
+        $entry = DiaryEntry::create($this->postData($request));
 
         return response()->json(['post' => $entry], 201);
+    }
+
+    public function updatePost(Request $request, DiaryEntry $entry): JsonResponse
+    {
+        $this->ensureAuthor($request);
+        $entry->update($this->postData($request));
+
+        return response()->json(['post' => $entry->fresh()]);
+    }
+
+    public function destroyPost(Request $request, DiaryEntry $entry): JsonResponse
+    {
+        $this->ensureAuthor($request);
+        $entry->delete();
+
+        return response()->json(['deleted' => true]);
     }
 
     public function storeEnvelope(Request $request): JsonResponse
@@ -98,6 +100,27 @@ class SanctuaryController extends Controller
     private function ensureAuthor(Request $request): void
     {
         $this->ensureAccess($request, 'Author access required.');
+    }
+
+    private function postData(Request $request): array
+    {
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'tag' => ['required', 'in:quick-thought,poem,memory,playlist'],
+            'date' => ['nullable', 'string', 'max:100'],
+            'content' => ['nullable', 'string', 'max:10000'],
+            'imageUrl' => ['nullable', 'url', 'max:2048'],
+            'spotifyPlaylistUrl' => ['required_if:tag,playlist', 'nullable', 'url', 'max:2048'],
+        ]);
+
+        return [
+            'title' => $data['title'],
+            'tag' => $data['tag'],
+            'date' => $data['date'] ?? 'Today',
+            'content' => $data['content'] ?? '',
+            'image_url' => $data['imageUrl'] ?? null,
+            'spotify_playlist_url' => $data['spotifyPlaylistUrl'] ?? null,
+        ];
     }
 
     private function ensureAccess(Request $request, string $message = 'Sanctuary access required.'): void
