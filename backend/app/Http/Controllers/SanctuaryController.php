@@ -88,13 +88,25 @@ class SanctuaryController extends Controller
     public function storeEnvelope(Request $request): JsonResponse
     {
         $this->ensureAuthor($request);
-        $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'in:Comfort,Love,Fun,Night'],
-            'content' => ['required', 'string', 'max:10000'],
-        ]);
+        $data = $this->envelopeData($request);
 
         return response()->json(['envelope' => Envelope::create($data)], 201);
+    }
+
+    public function updateEnvelope(Request $request, Envelope $envelope): JsonResponse
+    {
+        $this->ensureAuthor($request);
+        $envelope->update($this->envelopeData($request));
+
+        return response()->json(['envelope' => $envelope->fresh()]);
+    }
+
+    public function destroyEnvelope(Request $request, Envelope $envelope): JsonResponse
+    {
+        $this->ensureAuthor($request);
+        $envelope->delete();
+
+        return response()->json(['deleted' => true]);
     }
 
     private function ensureAuthor(Request $request): void
@@ -121,6 +133,15 @@ class SanctuaryController extends Controller
             'image_url' => $data['imageUrl'] ?? null,
             'spotify_playlist_url' => $data['spotifyPlaylistUrl'] ?? null,
         ];
+    }
+
+    private function envelopeData(Request $request): array
+    {
+        return $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'category' => ['required', 'in:Comfort,Love,Fun,Night'],
+            'content' => ['required', 'string', 'max:10000'],
+        ]);
     }
 
     private function ensureAccess(Request $request, string $message = 'Sanctuary access required.'): void

@@ -11,3 +11,5 @@ Route::put('/sanctuary/posts/{entry}', [SanctuaryController::class, 'updatePost'
 Route::delete('/sanctuary/posts/{entry}', [SanctuaryController::class, 'destroyPost']);
 Route::post('/sanctuary/posts/{entry}/like', [SanctuaryController::class, 'like']);
 Route::post('/sanctuary/envelopes', [SanctuaryController::class, 'storeEnvelope']);
+Route::put('/sanctuary/envelopes/{envelope}', [SanctuaryController::class, 'updateEnvelope']);
+Route::delete('/sanctuary/envelopes/{envelope}', [SanctuaryController::class, 'destroyEnvelope']);

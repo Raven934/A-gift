@@ -372,6 +372,10 @@ footer {
   grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
+.envelope-card-shell {
+  display: grid;
+  gap: 8px;
+}
 .envelope-card {
   text-align: left;
   min-height: 176px;
@@ -380,6 +384,12 @@ footer {
   transition:
     transform 0.2s,
     border-color 0.2s;
+}
+.envelope-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-right: 8px;
 }
 .envelope-card:hover {
   transform: translateY(-4px);

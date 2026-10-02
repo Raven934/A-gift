@@ -194,9 +194,15 @@ function App() {
     event.preventDefault();
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
+    const editingEnvelope =
+      modal?.type === "editEnvelope" ? modal.envelope : null;
     try {
-      const data = await api("/sanctuary/envelopes", {
-        method: "POST",
+      const data = await api(
+        editingEnvelope
+          ? `/sanctuary/envelopes/${editingEnvelope.id}`
+          : "/sanctuary/envelopes",
+        {
+        method: editingEnvelope ? "PUT" : "POST",
         headers: {
           "X-Sanctuary-Pin": authorPin,
           "X-Author-Pin": authorPin,
@@ -206,13 +212,45 @@ function App() {
           category: form.get("category"),
           content: form.get("content"),
         }),
-      });
-      setEnvelopes((current) => [
-        { ...data.envelope, id: String(data.envelope.id) },
-        ...current,
-      ]);
+        },
+      );
+      const savedEnvelope = {
+        ...data.envelope,
+        id: String(data.envelope.id),
+      };
+      setEnvelopes((current) =>
+        editingEnvelope
+          ? current.map((envelope) =>
+              envelope.id === editingEnvelope.id ? savedEnvelope : envelope,
+            )
+          : [savedEnvelope, ...current],
+      );
       formElement.reset();
       setModal(null);
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+
+  const deleteEnvelope = async (envelope) => {
+    if (
+      !window.confirm(
+        `Delete “${envelope.title}”? This cannot be undone.`,
+      )
+    )
+      return;
+
+    try {
+      await api(`/sanctuary/envelopes/${envelope.id}`, {
+        method: "DELETE",
+        headers: {
+          "X-Sanctuary-Pin": authorPin,
+          "X-Author-Pin": authorPin,
+        },
+      });
+      setEnvelopes((current) =>
+        current.filter((item) => item.id !== envelope.id),
+      );
     } catch (requestError) {
       setError(requestError.message);
     }
@@ -452,18 +490,37 @@ function App() {
             </div>
             <div className="envelope-grid">
               {envelopes.map((envelope) => (
-                <button
-                  className="envelope-card"
-                  key={envelope.id}
-                  onClick={() => setModal({ type: "read", envelope })}
-                >
-                  <div className="envelope-top">
-                    <span>{envelope.category}</span>
-                    <i>♥</i>
-                  </div>
-                  <h4>{envelope.title}</h4>
-                  <strong>Open Letter →</strong>
-                </button>
+                <div className="envelope-card-shell" key={envelope.id}>
+                  <button
+                    className="envelope-card"
+                    onClick={() => setModal({ type: "read", envelope })}
+                  >
+                    <div className="envelope-top">
+                      <span>{envelope.category}</span>
+                      <i>♥</i>
+                    </div>
+                    <h4>{envelope.title}</h4>
+                    <strong>Open Letter →</strong>
+                  </button>
+                  {isAuthor && (
+                    <div className="envelope-actions">
+                      <button
+                        className="post-action"
+                        onClick={() =>
+                          setModal({ type: "editEnvelope", envelope })
+                        }
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="post-action delete"
+                        onClick={() => deleteEnvelope(envelope)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </section>
@@ -485,6 +542,17 @@ function App() {
           onClose={closeComposer}
           onPost={addPost}
           onEnvelope={addEnvelope}
+        />
+      )}
+      {modal?.type === "editEnvelope" && (
+        <Composer
+          type="envelope"
+          setType={() => {}}
+          initialEnvelope={modal.envelope}
+          onClose={() => setModal(null)}
+          onPost={addPost}
+          onEnvelope={addEnvelope}
+          editing
         />
       )}
       {modal?.type === "edit" && (
@@ -552,6 +620,7 @@ function Composer({
   type,
   setType,
   initialPost,
+  initialEnvelope,
   onClose,
   onPost,
   onEnvelope,
@@ -656,12 +725,13 @@ function Composer({
             <input
               name="title"
               required
+              defaultValue={initialEnvelope?.title || ""}
               placeholder="e.g., Open when you miss me"
             />
           </label>
           <label>
             Category / Icon Mood
-            <select name="category">
+            <select name="category" defaultValue={initialEnvelope?.category || "Comfort"}>
               <option value="Comfort">Comfort</option>
               <option value="Love">Love</option>
               <option value="Fun">Fun</option>
@@ -674,6 +744,7 @@ function Composer({
               name="content"
               rows="6"
               required
+              defaultValue={initialEnvelope?.content || ""}
               placeholder="Write the secret letter inside..."
             />
           </label>
