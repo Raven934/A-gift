@@ -1,19 +1,26 @@
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
-# Install system dependencies & required PHP extensions
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git zip unzip libpng-dev libonig-dev libxml2-dev libzip-dev \
+    git \
+    zip \
+    unzip \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    libzip-dev \
     && docker-php-ext-install pdo_mysql mbstring gd zip bcmath
 
-# Get latest Composer
+# Get official Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
 COPY . .
 
-# Install dependencies without running post-install scripts during build
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Enable root execution & ignore platform requirement checks during build
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
 
 EXPOSE 10000
 
