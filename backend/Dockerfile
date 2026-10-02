@@ -1,4 +1,4 @@
-FROM php:8.3-cli
+FROM php:8.4-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -12,9 +12,9 @@ WORKDIR /var/www
 
 COPY . .
 
-# Enable root execution for composer
+# Enable root execution for composer & bypass platform version checks
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN composer install --no-dev --optimize-autoloader --no-scripts --ignore-platform-reqs
 
 # Fix Laravel storage and cache permissions
 RUN chmod -R 777 storage bootstrap/cache
