@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://for-him-okg8.onrender.com/api";
 const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
 const spotifyEmbed = (url) => {
@@ -21,7 +22,7 @@ const spotifyEmbed = (url) => {
 };
 
 const api = async (path, options = {}) => {
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       "Content-Type": "application/json",
