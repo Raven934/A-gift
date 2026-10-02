@@ -142,7 +142,7 @@ function App() {
           tag: form.get("tag"),
           date: form.get("date"),
           content: form.get("content"),
-          imageUrl: form.get("media") || null,
+          imageUrl: form.get("imageUrl") || null,
           spotifyPlaylistUrl: form.get("spotifyPlaylistUrl") || null,
         }),
       });
@@ -188,6 +188,11 @@ function App() {
     } catch (requestError) {
       setError(requestError.message);
     }
+  };
+
+  const closeComposer = () => {
+    setModal(null);
+    setComposerType("post");
   };
 
   if (checkingAccess)
@@ -431,7 +436,7 @@ function App() {
         <Composer
           type={composerType}
           setType={setComposerType}
-          onClose={() => setModal(null)}
+          onClose={closeComposer}
           onPost={addPost}
           onEnvelope={addEnvelope}
         />
@@ -494,12 +499,14 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
       <h3>Create New Entry</h3>
       <div className="composer-tabs">
         <button
+          type="button"
           className={type === "post" ? "active" : ""}
           onClick={() => setType("post")}
         >
           Timeline Note
         </button>
         <button
+          type="button"
           className={type === "envelope" ? "active" : ""}
           onClick={() => setType("envelope")}
         >
@@ -536,7 +543,6 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
             <textarea
               name="content"
               rows="5"
-              required
               placeholder="Write your heartfelt note here..."
             />
           </label>
@@ -553,7 +559,7 @@ function Composer({ type, setType, onClose, onPost, onEnvelope }) {
           ) : (
             <label>
               Optional Image URL
-              <input name="media" type="url" placeholder="https://..." />
+              <input name="imageUrl" type="url" placeholder="https://..." />
             </label>
           )}
           <button className="primary wide" type="submit">

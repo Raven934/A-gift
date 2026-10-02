@@ -68,12 +68,13 @@ class SanctuaryController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'tag' => ['required', 'in:quick-thought,poem,memory,playlist'],
             'date' => ['nullable', 'string', 'max:100'],
-            'content' => ['required', 'string', 'max:10000'],
+            'content' => ['nullable', 'string', 'max:10000'],
             'imageUrl' => ['nullable', 'url', 'max:2048'],
             'spotifyPlaylistUrl' => ['required_if:tag,playlist', 'nullable', 'url', 'max:2048'],
         ]);
         $entry = DiaryEntry::create([
             ...$data,
+            'content' => $data['content'] ?? '',
             'image_url' => $data['imageUrl'] ?? null,
             'spotify_playlist_url' => $data['spotifyPlaylistUrl'] ?? null,
             'date' => $data['date'] ?? 'Today',
