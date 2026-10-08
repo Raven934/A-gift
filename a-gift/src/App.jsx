@@ -90,6 +90,14 @@ function App() {
         : posts.filter((post) => post.tag === activeTag),
     [activeTag, posts],
   );
+  const favoritePosts = useMemo(
+    () => posts.filter((post) => post.isFavorite),
+    [posts],
+  );
+  const favoriteEnvelopes = useMemo(
+    () => envelopes.filter((envelope) => envelope.isFavorite),
+    [envelopes],
+  );
 
   const unlock = async (event) => {
     event.preventDefault();
@@ -158,6 +166,7 @@ function App() {
           id: String(data.post.id),
           imageUrl: data.post.image_url,
           spotifyPlaylistUrl: data.post.spotify_playlist_url,
+          isFavorite: Boolean(data.post.is_favorite),
       };
       setPosts((current) =>
         editingPost
@@ -217,6 +226,7 @@ function App() {
       const savedEnvelope = {
         ...data.envelope,
         id: String(data.envelope.id),
+        isFavorite: Boolean(data.envelope.is_favorite),
       };
       setEnvelopes((current) =>
         editingEnvelope
@@ -259,6 +269,51 @@ function App() {
   const closeComposer = () => {
     setModal(null);
     setComposerType("post");
+  };
+
+  const togglePostFavorite = async (post) => {
+    try {
+      const data = await api(`/sanctuary/posts/${post.id}/favorite`, {
+        method: "POST",
+        headers: { "X-Sanctuary-Pin": authorPin },
+      });
+      setPosts((current) =>
+        current.map((item) =>
+          item.id === post.id
+            ? { ...item, isFavorite: data.isFavorite }
+            : item,
+        ),
+      );
+      if (modal?.type === "readPost" && modal.post.id === post.id) {
+        setModal({ type: "readPost", post: { ...post, isFavorite: data.isFavorite } });
+      }
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  };
+
+  const toggleEnvelopeFavorite = async (envelope) => {
+    try {
+      const data = await api(`/sanctuary/envelopes/${envelope.id}/favorite`, {
+        method: "POST",
+        headers: { "X-Sanctuary-Pin": authorPin },
+      });
+      setEnvelopes((current) =>
+        current.map((item) =>
+          item.id === envelope.id
+            ? { ...item, isFavorite: data.isFavorite }
+            : item,
+        ),
+      );
+      if (modal?.type === "read" && modal.envelope.id === envelope.id) {
+        setModal({
+          type: "read",
+          envelope: { ...envelope, isFavorite: data.isFavorite },
+        });
+      }
+    } catch (requestError) {
+      setError(requestError.message);
+    }
   };
 
   if (checkingAccess)
@@ -359,6 +414,12 @@ function App() {
         >
           ✉ Envelope Vault <span>(“Open When...”)</span>
         </button>
+        <button
+          className={tab === "favorites" ? "active" : ""}
+          onClick={() => setTab("favorites")}
+        >
+          ♥ Favorites <span>({favoritePosts.length + favoriteEnvelopes.length})</span>
+        </button>
       </nav>
       <main className="content main-content">
         {tab === "feed" ? (
@@ -450,6 +511,13 @@ function App() {
                       >
                         ♡ Read with love <b>{post.likes}</b>
                       </button>
+                      <button
+                        className={`favorite-button ${post.isFavorite ? "active" : ""}`}
+                        onClick={() => togglePostFavorite(post)}
+                        aria-label={`${post.isFavorite ? "Remove" : "Add"} ${post.title} ${post.isFavorite ? "from" : "to"} favorites`}
+                      >
+                        {post.isFavorite ? "♥ Favorite" : "♡ Favorite"}
+                      </button>
                       <div className="post-actions">
                         {isAuthor && (
                           <>
@@ -479,7 +547,7 @@ function App() {
               )}
             </div>
           </section>
-        ) : (
+        ) : tab === "envelopes" ? (
           <section className="envelopes">
             <div className="section-intro">
               <h3>Digital Envelope Vault</h3>
@@ -502,6 +570,13 @@ function App() {
                     <h4>{envelope.title}</h4>
                     <strong>Open Letter →</strong>
                   </button>
+                  <button
+                    className={`favorite-button envelope-favorite ${envelope.isFavorite ? "active" : ""}`}
+                    onClick={() => toggleEnvelopeFavorite(envelope)}
+                    aria-label={`${envelope.isFavorite ? "Remove" : "Add"} ${envelope.title} ${envelope.isFavorite ? "from" : "to"} favorites`}
+                  >
+                    {envelope.isFavorite ? "♥ Favorite" : "♡ Favorite"}
+                  </button>
                   {isAuthor && (
                     <div className="envelope-actions">
                       <button
@@ -523,6 +598,71 @@ function App() {
                 </div>
               ))}
             </div>
+          </section>
+        ) : (
+          <section className="favorites">
+            <div className="section-intro">
+              <h3>Your Favorite Little Things</h3>
+              <p>All the notes and letters you want to come back to.</p>
+            </div>
+            {favoritePosts.length || favoriteEnvelopes.length ? (
+              <div className="favorite-list">
+                {favoritePosts.map((post) => (
+                  <article className="post-card" key={`favorite-post-${post.id}`}>
+                    <div className="post-meta">
+                      <span>#{post.tag}</span>
+                      <time>{post.date}</time>
+                    </div>
+                    <h3>{post.title}</h3>
+                    <p className="post-content">{post.content}</p>
+                    <div className="post-footer">
+                      <button
+                        className="favorite-button active"
+                        onClick={() => togglePostFavorite(post)}
+                        aria-label={`Remove ${post.title} from favorites`}
+                      >
+                        ♥ Favorite
+                      </button>
+                      <button
+                        className="read-link"
+                        onClick={() => setModal({ type: "readPost", post })}
+                      >
+                        Read note →
+                      </button>
+                    </div>
+                  </article>
+                ))}
+                {favoriteEnvelopes.map((envelope) => (
+                  <article className="favorite-envelope" key={`favorite-envelope-${envelope.id}`}>
+                    <div className="envelope-top">
+                      <span>{envelope.category}</span>
+                      <i>♥</i>
+                    </div>
+                    <h4>{envelope.title}</h4>
+                    <p>{envelope.content}</p>
+                    <div className="favorite-envelope-footer">
+                      <button
+                        className="favorite-button active"
+                        onClick={() => toggleEnvelopeFavorite(envelope)}
+                        aria-label={`Remove ${envelope.title} from favorites`}
+                      >
+                        ♥ Favorite
+                      </button>
+                      <button
+                        className="read-link"
+                        onClick={() => setModal({ type: "read", envelope })}
+                      >
+                        Open letter →
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty">
+                ♡<p>Your favorites will appear here when something speaks to your heart.</p>
+              </div>
+            )}
           </section>
         )}
       </main>
@@ -574,6 +714,24 @@ function App() {
             <span className="category">{modal.envelope.category}</span>
             <p>{modal.envelope.content}</p>
             <em>Always here for you ♥</em>
+          </div>
+        </Modal>
+      )}
+      {modal?.type === "readPost" && (
+        <Modal onClose={() => setModal(null)}>
+          <div className="read-envelope">
+            <div className="round-icon">♥</div>
+            <h3>{modal.post.title}</h3>
+            <span className="category">#{modal.post.tag}</span>
+            <p>{modal.post.content}</p>
+            <button
+              className={`favorite-button ${modal.post.isFavorite ? "active" : ""}`}
+              onClick={() => togglePostFavorite(modal.post)}
+            >
+              {modal.post.isFavorite
+                ? "♥ Saved to Favorites"
+                : "♡ Add to Favorites"}
+            </button>
           </div>
         </Modal>
       )}

@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class Envelope extends Model
 {
-    protected $fillable = ['title', 'category', 'content'];
+    protected $fillable = ['title', 'category', 'content', 'is_favorite'];
 }

@@ -31,12 +31,14 @@ class SanctuaryController extends Controller
                 'imageUrl' => $entry->image_url,
                 'spotifyPlaylistUrl' => $entry->spotify_playlist_url,
                 'likes' => $entry->likes,
+                'isFavorite' => (bool) $entry->is_favorite,
             ]),
             'envelopes' => Envelope::query()->latest()->get()->map(fn (Envelope $envelope) => [
                 'id' => (string) $envelope->id,
                 'title' => $envelope->title,
                 'category' => $envelope->category,
                 'content' => $envelope->content,
+                'isFavorite' => (bool) $envelope->is_favorite,
             ]),
             'pingCount' => (int) SanctuaryStat::query()->whereKey('pings')->value('value'),
         ]);
@@ -59,6 +61,22 @@ class SanctuaryController extends Controller
         $entry->increment('likes');
 
         return response()->json(['likes' => $entry->fresh()->likes]);
+    }
+
+    public function favoritePost(Request $request, DiaryEntry $entry): JsonResponse
+    {
+        $this->ensureAccess($request);
+        $entry->update(['is_favorite' => ! $entry->is_favorite]);
+
+        return response()->json(['isFavorite' => (bool) $entry->fresh()->is_favorite]);
+    }
+
+    public function favoriteEnvelope(Request $request, Envelope $envelope): JsonResponse
+    {
+        $this->ensureAccess($request);
+        $envelope->update(['is_favorite' => ! $envelope->is_favorite]);
+
+        return response()->json(['isFavorite' => (bool) $envelope->fresh()->is_favorite]);
     }
 
     public function storePost(Request $request): JsonResponse

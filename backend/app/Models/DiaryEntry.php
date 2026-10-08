@@ -14,5 +14,6 @@ class DiaryEntry extends Model
         'image_url',
         'spotify_playlist_url',
         'likes',
+        'is_favorite',
     ];
 }
