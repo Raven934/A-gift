@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "https://for-him-okg8.onrender.com/api";
+const RELATIONSHIP_START = new Date(2026, 6, 18);
 const storedPin = () => window.sessionStorage.getItem("sanctuaryPin") || "";
 
 const spotifyEmbed = (url) => {
@@ -40,6 +41,68 @@ const api = async (path, options = {}) => {
     );
   return body;
 };
+
+const relationshipDuration = (now) => {
+  if (now < RELATIONSHIP_START) return null;
+
+  let cursor = new Date(RELATIONSHIP_START);
+  let months =
+    (now.getFullYear() - cursor.getFullYear()) * 12 +
+    now.getMonth() -
+    cursor.getMonth();
+  let monthAnchor = new Date(cursor);
+  monthAnchor.setMonth(monthAnchor.getMonth() + months);
+
+  if (monthAnchor > now) {
+    months -= 1;
+    monthAnchor = new Date(cursor);
+    monthAnchor.setMonth(monthAnchor.getMonth() + months);
+  }
+
+  const remainingMilliseconds = now - monthAnchor;
+  const days = Math.floor(remainingMilliseconds / 86400000);
+  const afterDays = remainingMilliseconds - days * 86400000;
+  const hours = Math.floor(afterDays / 3600000);
+  const afterHours = afterDays - hours * 3600000;
+  const minutes = Math.floor(afterHours / 60000);
+  const seconds = Math.floor((afterHours - minutes * 60000) / 1000);
+
+  return { months, days, hours, minutes, seconds };
+};
+
+function RelationshipCounter() {
+  const [now, setNow] = useState(() => new Date());
+  const duration = relationshipDuration(now);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  return (
+    <div className="relationship-counter" aria-live="polite">
+      <span className="counter-label">Together since 18 July 2026</span>
+        {duration ? (
+          <div className="counter-values" aria-label="Time together">
+            {[
+              ["months", duration.months],
+              ["days", duration.days],
+              ["hours", duration.hours],
+              ["minutes", duration.minutes],
+              ["seconds", duration.seconds],
+            ].map(([unit, value]) => (
+              <span className="counter-unit" key={unit}>
+                <strong>{String(value).padStart(2, "0")}</strong>
+                <small>{unit}</small>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <strong className="counter-waiting">Our story is about to begin…</strong>
+        )}
+    </div>
+  );
+}
 
 function App() {
   const [unlocked, setUnlocked] = useState(false);
@@ -394,6 +457,7 @@ function App() {
             “No matter where the day takes us, this little corner will always
             lead me back to you... and hope it leads you back to me.”
           </p>
+          <RelationshipCounter />
         </div>
         {isAuthor && (
           <button className="primary" onClick={() => setModal("compose")}>
@@ -634,12 +698,17 @@ function App() {
                 ))}
                 {favoriteEnvelopes.map((envelope) => (
                   <article className="favorite-envelope" key={`favorite-envelope-${envelope.id}`}>
-                    <div className="envelope-top">
-                      <span>{envelope.category}</span>
-                      <i>♥</i>
-                    </div>
-                    <h4>{envelope.title}</h4>
-                    <p>{envelope.content}</p>
+                    <button
+                      className="favorite-letter"
+                      onClick={() => setModal({ type: "read", envelope })}
+                    >
+                      <div className="envelope-top">
+                        <span>{envelope.category}</span>
+                        <i>♥</i>
+                      </div>
+                      <h4>{envelope.title}</h4>
+                      <strong>Sealed with love · Open letter →</strong>
+                    </button>
                     <div className="favorite-envelope-footer">
                       <button
                         className="favorite-button active"

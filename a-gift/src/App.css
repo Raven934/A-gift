@@ -178,6 +178,47 @@ footer {
     italic 14px "Playfair Display",
     serif;
 }
+.relationship-counter {
+  width: fit-content;
+  margin-top: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--purple-light), var(--rose-light));
+}
+.counter-label {
+  display: block;
+  color: var(--purple-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.counter-values {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+}
+.counter-unit {
+  display: grid;
+  justify-items: center;
+  min-width: 42px;
+}
+.counter-unit strong {
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+}
+.counter-unit small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.counter-waiting {
+  display: block;
+  margin-top: 6px;
+  color: var(--purple-dark);
+  font-family: "Playfair Display", serif;
+}
 .live-pill,
 .post-meta span,
 .envelope-top span,
@@ -491,11 +532,28 @@ footer {
   background: var(--card);
   box-shadow: var(--shadow);
 }
+.favorite-letter {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  text-align: left;
+}
+.favorite-letter:hover h4,
+.favorite-letter:hover strong {
+  color: var(--rose-dark);
+}
 .favorite-envelope h4 {
   margin: 18px 0 10px;
   font:
     700 27px "Dancing Script",
     cursive;
+}
+.favorite-letter strong {
+  color: var(--rose);
+  font-size: 12px;
 }
 .favorite-envelope p {
   margin: 0;
