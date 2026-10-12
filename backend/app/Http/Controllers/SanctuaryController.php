@@ -138,7 +138,7 @@ class SanctuaryController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'tag' => ['required', 'in:quick-thought,poem,memory,playlist'],
             'date' => ['nullable', 'string', 'max:100'],
-            'content' => ['nullable', 'string', 'max:10000'],
+            'content' => ['nullable', 'string'],
             'imageUrl' => ['nullable', 'url', 'max:2048'],
             'spotifyPlaylistUrl' => ['required_if:tag,playlist', 'nullable', 'url', 'max:2048'],
         ]);
@@ -158,7 +158,7 @@ class SanctuaryController extends Controller
         return $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'category' => ['required', 'in:Comfort,Love,Fun,Night'],
-            'content' => ['required', 'string', 'max:10000'],
+            'content' => ['required', 'string'],
         ]);
     }
 
